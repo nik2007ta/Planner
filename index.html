@@ -221,6 +221,16 @@
     background:var(--paper); color:var(--ink); font-size:14.5px;
     cursor:pointer;
   }
+
+  .save-warning{
+    position:fixed; left:16px; right:16px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    max-width:448px; margin:0 auto;
+    background:var(--palestra); color:#fff;
+    font-size:13px; line-height:1.35;
+    padding:10px 14px; border-radius:10px;
+    z-index:30;
+  }
 </style>
 </head>
 <body>
@@ -289,26 +299,34 @@
   let saveTimer = null;
   let storageAvailable = true;
 
-  async function loadData(){
+  function loadData(){
     try{
-      const r = await window.storage.get(STORAGE_KEY, false);
-      if(r && r.value) return JSON.parse(r.value);
-      return null;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
     }catch(e){
+      storageAvailable = false;
       return null;
     }
   }
   function scheduleSave(){
     if(!storageAvailable) return;
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(async () => {
+    saveTimer = setTimeout(() => {
       try{
-        const res = await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
-        if(!res) storageAvailable = false;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       }catch(e){
         storageAvailable = false;
+        showSaveWarning();
       }
     }, 350);
+  }
+  function showSaveWarning(){
+    if(document.getElementById('saveWarning')) return;
+    const bar = document.createElement('div');
+    bar.id = 'saveWarning';
+    bar.className = 'save-warning';
+    bar.textContent = 'Il salvataggio non è disponibile in questo browser: le modifiche resteranno solo finché tieni aperta la pagina.';
+    document.body.appendChild(bar);
   }
 
   function dayProgress(dayKey){
@@ -552,8 +570,8 @@
     return data;
   }
 
-  (async function init(){
-    state = ensureAllCategories(await loadData() || emptyWeek());
+  (function init(){
+    state = ensureAllCategories(loadData() || emptyWeek());
     renderAll();
   })();
 

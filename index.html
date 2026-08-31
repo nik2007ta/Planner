@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>La mia settimana</title>
+<meta name="description" content="Planner settimanale per lezioni, dieta, palestra, faccende domestiche, trading e altro.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#23291F">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Settimana">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#F1F3EE;
+    --card:#FFFFFF;
+    --ink:#23291F;
+    --ink-soft:#767F72;
+    --line:#E2E5DC;
+    --lezioni:#2F5D8A;
+    --dieta:#4B7F52;
+    --palestra:#A6472A;
+    --domestiche:#7A5C8E;
+    --trading:#3D7D74;
+    --altro:#6B6558;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:480px; margin:0 auto; padding:0 16px;}
+
+  header{
+    position:sticky; top:0; z-index:10;
+    background:var(--paper);
+    padding-top: calc(18px + env(safe-area-inset-top));
+    padding-bottom:10px;
+  }
+  .header-row{display:flex; align-items:center; justify-content:space-between;}
+  h1{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .gear{
+    width:38px; height:38px; border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--card);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--ink-soft);
+    flex:none;
+  }
+  .gear svg{width:18px; height:18px;}
+
+  .day-strip{
+    display:flex; gap:6px;
+    overflow-x:auto;
+    padding:14px 0 4px;
+    scrollbar-width:none;
+  }
+  .day-strip::-webkit-scrollbar{display:none;}
+  .day-pill{
+    flex:1 0 auto; min-width:44px;
+    text-align:center;
+    padding:8px 4px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+    color:var(--ink-soft);
+  }
+  .day-pill .lbl{
+    font-size:12.5px; font-weight:600; display:block;
+  }
+  .day-pill.today .lbl::after{
+    content:''; display:inline-block; width:4px; height:4px; border-radius:50%;
+    background:currentColor; margin-left:4px; vertical-align:middle;
+  }
+  .day-pill.active{background:var(--ink); color:var(--paper);}
+  .day-pill .bar{
+    margin-top:6px; height:3px; border-radius:2px; background:var(--line);
+    overflow:hidden;
+  }
+  .day-pill.active .bar{background:rgba(241,243,238,.3);}
+  .day-pill .bar-fill{height:100%; background:currentColor; width:0%; transition:width .2s ease;}
+
+  main{padding-top:6px;}
+  .day-heading{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600; font-size:19px;
+    margin: 6px 0 14px;
+  }
+
+  .card{
+    background:var(--card);
+    border-left:4px solid var(--cat, var(--altro));
+    border-radius:10px;
+    padding:14px 15px 12px;
+    margin-bottom:12px;
+  }
+  .card-title{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600; font-size:15px;
+    color:var(--cat, var(--altro));
+    margin:0 0 8px;
+  }
+  .item{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .item:last-of-type{border-bottom:none;}
+  .chk{
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid var(--cat, var(--altro));
+    flex:none; cursor:pointer; position:relative;
+    background:transparent;
+    padding:0;
+  }
+  .chk.done{background:var(--cat, var(--altro));}
+  .chk.done::after{
+    content:''; position:absolute; left:5px; top:1px;
+    width:5px; height:9px;
+    border:solid var(--card); border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+  }
+  .item-text{flex:1; font-size:14.5px; line-height:1.35; min-width:0; word-break:break-word;}
+  .item.done .item-text{color:var(--ink-soft); text-decoration:line-through;}
+  .item-time{font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums; flex:none;}
+  .item-del{
+    flex:none; width:22px; height:22px; border:none; background:none;
+    color:var(--ink-soft); font-size:16px; cursor:pointer; line-height:1;
+    opacity:.55;
+  }
+  .item-del:active{opacity:1;}
+  .item-body{flex:1; min-width:0;}
+  .item-desc{
+    font-size:12.5px; color:var(--ink-soft); line-height:1.3;
+    margin-top:2px; word-break:break-word;
+  }
+
+  .card.timeline{border-left-color:var(--ink);}
+  .card.timeline .card-title{color:var(--ink);}
+  .tl-dot{
+    width:8px; height:8px; border-radius:50%; flex:none;
+  }
+  .tl-meta{
+    display:flex; align-items:center; gap:6px; flex:none;
+    font-size:12px; color:var(--ink-soft); font-variant-numeric:tabular-nums;
+    width:52px;
+  }
+
+  .empty{color:var(--ink-soft); font-size:13.5px; font-style:italic; padding:4px 0 8px;}
+
+  .note-toggle{
+    background:none; border:none; color:var(--ink-soft);
+    font-size:12.5px; cursor:pointer; padding:6px 0 0; text-align:left;
+  }
+  .note-toggle:active{opacity:.7;}
+  .desc-input{
+    display:none; width:100%; margin-top:6px;
+    border:1px solid var(--line); border-radius:8px;
+    padding:8px 10px; font-size:13.5px; font-family:inherit;
+    background:var(--paper); color:var(--ink); resize:vertical; min-height:44px;
+  }
+  .desc-input.open{display:block;}
+
+  .add-row{display:flex; gap:6px; margin-top:8px;}
+  .add-row input[type=text]{
+    flex:1; min-width:0;
+    border:1px solid var(--line); border-radius:8px;
+    padding:9px 10px; font-size:14px; font-family:inherit;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .add-row input[type=time]{
+    width:88px; border:1px solid var(--line); border-radius:8px;
+    padding:9px 6px; font-size:13px; font-family:inherit;
+    background:var(--paper); color:var(--ink);
+  }
+  .add-row button{
+    flex:none; width:38px; border-radius:8px; border:none;
+    background:var(--cat, var(--altro)); color:#fff;
+    font-size:19px; cursor:pointer;
+  }
+  input::placeholder{color:var(--ink-soft);}
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(35,41,31,.45);
+    display:none; align-items:flex-end; justify-content:center;
+    z-index:20;
+  }
+  .overlay.open{display:flex;}
+  .sheet{
+    background:var(--card); width:100%; max-width:480px;
+    border-radius:16px 16px 0 0;
+    padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  }
+  .sheet h2{font-family:'Fraunces',Georgia,serif; font-size:18px; margin:0 0 14px;}
+  .sheet button.danger{
+    width:100%; padding:12px; border-radius:10px; border:1px solid var(--palestra);
+    background:none; color:var(--palestra); font-size:14.5px; font-weight:600;
+    cursor:pointer; margin-bottom:10px;
+  }
+  .sheet button.close{
+    width:100%; padding:12px; border-radius:10px; border:none;
+    background:var(--paper); color:var(--ink); font-size:14.5px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="header-row">
+      <h1>La mia settimana</h1>
+      <button class="gear" id="settingsBtn" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.04z"/></svg>
+      </button>
+    </div>
+    <div class="day-strip" id="dayStrip"></div>
+  </header>
+
+  <main>
+    <div class="day-heading" id="dayHeading"></div>
+    <div id="cardsHost"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>Impostazioni</h2>
+    <button class="danger" id="clearDayBtn">Svuota la giornata selezionata</button>
+    <button class="danger" id="clearAllBtn">Svuota tutta la settimana</button>
+    <button class="close" id="closeSheet">Chiudi</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const CATEGORIES = [
+    {key:'lezioni', label:'Lezioni'},
+    {key:'dieta', label:'Dieta'},
+    {key:'palestra', label:'Palestra'},
+    {key:'domestiche', label:'Domestiche'},
+    {key:'trading', label:'Trading'},
+    {key:'altro', label:'Altro'}
+  ];
+  const DAYS = [
+    {key:'lun', label:'Lun', full:'Lunedì'},
+    {key:'mar', label:'Mar', full:'Martedì'},
+    {key:'mer', label:'Mer', full:'Mercoledì'},
+    {key:'gio', label:'Gio', full:'Giovedì'},
+    {key:'ven', label:'Ven', full:'Venerdì'},
+    {key:'sab', label:'Sab', full:'Sabato'},
+    {key:'dom', label:'Dom', full:'Domenica'}
+  ];
+  const STORAGE_KEY = 'weekly-planner-data';
+
+  function emptyWeek(){
+    const w = {};
+    DAYS.forEach(d => { w[d.key] = {}; CATEGORIES.forEach(c => w[d.key][c.key] = []); });
+    return w;
+  }
+  function todayKey(){
+    const idx = (new Date().getDay() + 6) % 7; // 0=Lun ... 6=Dom
+    return DAYS[idx].key;
+  }
+  function uid(){
+    return (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2));
+  }
+
+  let state = null;
+  let currentDay = todayKey();
+  let saveTimer = null;
+  let storageAvailable = true;
+
+  async function loadData(){
+    try{
+      const r = await window.storage.get(STORAGE_KEY, false);
+      if(r && r.value) return JSON.parse(r.value);
+      return null;
+    }catch(e){
+      return null;
+    }
+  }
+  function scheduleSave(){
+    if(!storageAvailable) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try{
+        const res = await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+        if(!res) storageAvailable = false;
+      }catch(e){
+        storageAvailable = false;
+      }
+    }, 350);
+  }
+
+  function dayProgress(dayKey){
+    const day = state[dayKey];
+    let total = 0, done = 0;
+    CATEGORIES.forEach(c => { day[c.key].forEach(it => { total++; if(it.done) done++; }); });
+    return total === 0 ? -1 : Math.round((done/total)*100);
+  }
+
+  function catColor(key){
+    return getComputedStyle(document.documentElement).getPropertyValue('--' + key).trim();
+  }
+
+  function toggleItem(dayKey, catKey, id){
+    const it = state[dayKey][catKey].find(x => x.id === id);
+    if(it){ it.done = !it.done; scheduleSave(); renderAll(); }
+  }
+  function deleteItem(dayKey, catKey, id){
+    state[dayKey][catKey] = state[dayKey][catKey].filter(x => x.id !== id);
+    scheduleSave();
+    renderAll();
+  }
+  function addItem(dayKey, catKey, text, time, description){
+    state[dayKey][catKey].push({ id: uid(), text, time: time || '', description: description || '', done: false });
+    scheduleSave();
+    renderAll();
+  }
+
+  // Riga di una voce: usata sia nelle card per categoria sia nella tabella cronologica
+  function buildItemRow(dayKey, catKey, it, withDot){
+    const color = catColor(catKey);
+    const row = document.createElement('div');
+    row.className = 'item' + (it.done ? ' done' : '');
+
+    const chk = document.createElement('button');
+    chk.className = 'chk' + (it.done ? ' done' : '');
+    chk.style.borderColor = color;
+    if(it.done) chk.style.background = color;
+    chk.setAttribute('aria-label', 'Segna come fatto');
+    chk.addEventListener('click', () => toggleItem(dayKey, catKey, it.id));
+    row.appendChild(chk);
+
+    if(withDot){
+      const meta = document.createElement('div');
+      meta.className = 'tl-meta';
+      meta.innerHTML = `<span class="tl-dot" style="background:${color}"></span>${it.time || ''}`;
+      row.appendChild(meta);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'item-body';
+    const text = document.createElement('div');
+    text.className = 'item-text';
+    text.textContent = it.text;
+    body.appendChild(text);
+    if(it.description){
+      const desc = document.createElement('div');
+      desc.className = 'item-desc';
+      desc.textContent = it.description;
+      body.appendChild(desc);
+    }
+    row.appendChild(body);
+
+    if(!withDot && it.time){
+      const t = document.createElement('span');
+      t.className = 'item-time';
+      t.textContent = it.time;
+      row.appendChild(t);
+    }
+
+    const del = document.createElement('button');
+    del.className = 'item-del';
+    del.setAttribute('aria-label', 'Elimina');
+    del.textContent = '×';
+    del.addEventListener('click', () => deleteItem(dayKey, catKey, it.id));
+    row.appendChild(del);
+
+    return row;
+  }
+
+  function buildAddRow(dayKey, catKey){
+    const wrap = document.createElement('div');
+
+    const addRow = document.createElement('div');
+    addRow.className = 'add-row';
+    addRow.innerHTML = `
+      <input type="text" placeholder="Aggiungi...">
+      <input type="time">
+      <button aria-label="Aggiungi">+</button>
+    `;
+    const textInput = addRow.querySelector('input[type=text]');
+    const timeInput = addRow.querySelector('input[type=time]');
+
+    const toggle = document.createElement('button');
+    toggle.className = 'note-toggle';
+    toggle.type = 'button';
+    toggle.textContent = '+ descrizione';
+
+    const descInput = document.createElement('textarea');
+    descInput.className = 'desc-input';
+    descInput.placeholder = 'Descrizione (opzionale)';
+    descInput.rows = 2;
+
+    toggle.addEventListener('click', () => {
+      const open = descInput.classList.toggle('open');
+      toggle.textContent = open ? '– descrizione' : '+ descrizione';
+      if(open) descInput.focus();
+    });
+
+    const submit = () => {
+      const val = textInput.value.trim();
+      if(!val) return;
+      addItem(dayKey, catKey, val, timeInput.value, descInput.value.trim());
+    };
+    addRow.querySelector('button').addEventListener('click', submit);
+    textInput.addEventListener('keydown', e => { if(e.key === 'Enter') submit(); });
+
+    wrap.appendChild(addRow);
+    wrap.appendChild(toggle);
+    wrap.appendChild(descInput);
+    return wrap;
+  }
+
+  function renderTimeline(dayKey){
+    const entries = [];
+    CATEGORIES.forEach(cat => {
+      state[dayKey][cat.key].forEach(it => entries.push({ catKey: cat.key, it }));
+    });
+    if(entries.length === 0) return null;
+
+    entries.sort((a, b) => {
+      const ta = a.it.time || '99:99';
+      const tb = b.it.time || '99:99';
+      if(ta !== tb) return ta.localeCompare(tb);
+      return CATEGORIES.findIndex(c => c.key === a.catKey) - CATEGORIES.findIndex(c => c.key === b.catKey);
+    });
+
+    const card = document.createElement('div');
+    card.className = 'card timeline';
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.textContent = 'In ordine cronologico';
+    card.appendChild(title);
+
+    entries.forEach(({ catKey, it }) => {
+      card.appendChild(buildItemRow(dayKey, catKey, it, true));
+    });
+
+    return card;
+  }
+
+  function renderStrip(){
+    const host = document.getElementById('dayStrip');
+    host.innerHTML = '';
+    const tk = todayKey();
+    DAYS.forEach(d => {
+      const pill = document.createElement('div');
+      pill.className = 'day-pill' + (d.key === currentDay ? ' active' : '') + (d.key === tk ? ' today' : '');
+      const pct = dayProgress(d.key);
+      pill.innerHTML = `
+        <span class="lbl">${d.label}</span>
+        <div class="bar"><div class="bar-fill" style="width:${pct < 0 ? 0 : pct}%"></div></div>
+      `;
+      pill.addEventListener('click', () => { currentDay = d.key; renderAll(); });
+      host.appendChild(pill);
+    });
+  }
+
+  function renderDay(){
+    const dayObj = DAYS.find(d => d.key === currentDay);
+    document.getElementById('dayHeading').textContent = dayObj.full;
+    const host = document.getElementById('cardsHost');
+    host.innerHTML = '';
+
+    const timeline = renderTimeline(currentDay);
+    if(timeline) host.appendChild(timeline);
+
+    CATEGORIES.forEach(cat => {
+      const items = state[currentDay][cat.key];
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--cat', `var(--${cat.key})`);
+
+      const title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = cat.label;
+      card.appendChild(title);
+
+      if(items.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'Ancora nulla qui.';
+        card.appendChild(empty);
+      } else {
+        items
+          .slice()
+          .sort((a,b) => (a.time || 'zz').localeCompare(b.time || 'zz'))
+          .forEach(it => card.appendChild(buildItemRow(currentDay, cat.key, it, false)));
+      }
+
+      card.appendChild(buildAddRow(currentDay, cat.key));
+      host.appendChild(card);
+    });
+  }
+
+  function renderAll(){
+    renderStrip();
+    renderDay();
+  }
+
+  // Settings sheet
+  const overlay = document.getElementById('overlay');
+  document.getElementById('settingsBtn').addEventListener('click', () => overlay.classList.add('open'));
+  document.getElementById('closeSheet').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
+  document.getElementById('clearDayBtn').addEventListener('click', () => {
+    if(confirm('Svuotare tutte le voci di questo giorno?')){
+      CATEGORIES.forEach(c => state[currentDay][c.key] = []);
+      scheduleSave();
+      overlay.classList.remove('open');
+      renderAll();
+    }
+  });
+  document.getElementById('clearAllBtn').addEventListener('click', () => {
+    if(confirm('Svuotare l\'intera settimana? Non si può annullare.')){
+      state = emptyWeek();
+      scheduleSave();
+      overlay.classList.remove('open');
+      renderAll();
+    }
+  });
+
+  function ensureAllCategories(data){
+    DAYS.forEach(d => {
+      if(!data[d.key]) data[d.key] = {};
+      CATEGORIES.forEach(c => {
+        if(!Array.isArray(data[d.key][c.key])) data[d.key][c.key] = [];
+        data[d.key][c.key].forEach(it => { if(typeof it.description !== 'string') it.description = ''; });
+      });
+    });
+    return data;
+  }
+
+  (async function init(){
+    state = ensureAllCategories(await loadData() || emptyWeek());
+    renderAll();
+  })();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
